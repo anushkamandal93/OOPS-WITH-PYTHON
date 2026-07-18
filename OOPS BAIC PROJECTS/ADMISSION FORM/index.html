@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Registrar's Desk — Admissions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2A4A;
+    --ink-soft:#3D4451;
+    --paper:#FAF7EF;
+    --paper-line:#E4DECC;
+    --gold:#B8912F;
+    --gold-deep:#8F701F;
+    --rose:#A8434B;
+    --card:#FFFDF7;
+    --shadow: 0 20px 50px -20px rgba(27,42,74,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(184,145,47,0.08), transparent 45%),
+      radial-gradient(circle at 100% 100%, rgba(27,42,74,0.06), transparent 50%),
+      var(--paper);
+    font-family:'Inter',sans-serif;
+    color:var(--ink-soft);
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:56px 20px 80px;
+  }
+
+  .sheet{
+    width:100%;
+    max-width:720px;
+  }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.24em;
+    text-transform:uppercase;
+    color:var(--gold-deep);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:26px;height:1px;
+    background:var(--gold-deep);
+    display:inline-block;
+  }
+
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(34px,5vw,50px);
+    color:var(--ink);
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  h1 em{
+    font-style:italic;
+    font-weight:500;
+    color:var(--gold-deep);
+  }
+  .sub{
+    font-size:15px;
+    color:#6B7280;
+    max-width:46ch;
+    margin:0 0 40px;
+    line-height:1.6;
+  }
+
+  /* Step indicator */
+  .rail{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:36px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#A6A08B;
+  }
+  .rail .node{display:flex;align-items:center;gap:8px;}
+  .rail .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--paper-line);
+    transition:background .3s;
+  }
+  .rail .node.active{color:var(--ink);}
+  .rail .node.active .dot{background:var(--gold);}
+  .rail .bar{flex:1;height:1px;background:var(--paper-line);}
+
+  /* Step panels */
+  .panel{
+    display:none;
+  }
+  .panel.show{display:block;animation:rise .5s cubic-bezier(.2,.7,.3,1);}
+  @keyframes rise{
+    from{opacity:0; transform:translateY(14px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  /* Track selector cards */
+  .tracks{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+  }
+  @media (max-width:560px){ .tracks{grid-template-columns:1fr;} }
+
+  .track{
+    position:relative;
+    background:var(--card);
+    border:1px solid var(--paper-line);
+    border-radius:2px;
+    padding:28px 24px;
+    cursor:pointer;
+    text-align:left;
+    transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    overflow:hidden;
+  }
+  .track::after{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg,var(--gold),transparent);
+    transform:scaleX(0);
+    transform-origin:left;
+    transition:transform .3s ease;
+  }
+  .track:hover{
+    transform:translateY(-4px);
+    box-shadow:var(--shadow);
+    border-color:var(--gold);
+  }
+  .track:hover::after{transform:scaleX(1);}
+  .track .num{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--gold-deep);
+    letter-spacing:0.1em;
+    margin-bottom:14px;
+    display:block;
+  }
+  .track h3{
+    font-family:'Fraunces',serif;
+    font-size:26px;
+    font-weight:600;
+    color:var(--ink);
+    margin:0 0 8px;
+  }
+  .track p{
+    font-size:13px;
+    color:#8A8470;
+    margin:0;
+    line-height:1.5;
+  }
+
+  /* Form */
+  .form-card{
+    background:var(--card);
+    border:1px solid var(--paper-line);
+    border-radius:2px;
+    padding:36px 32px;
+    box-shadow:var(--shadow);
+  }
+  .form-card .track-tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.1em;
+    color:var(--gold-deep);
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .form-card h2{
+    font-family:'Fraunces',serif;
+    font-size:26px;
+    font-weight:600;
+    color:var(--ink);
+    margin:0 0 26px;
+  }
+  .field{
+    margin-bottom:22px;
+    position:relative;
+  }
+  .field label{
+    display:block;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    font-family:'IBM Plex Mono',monospace;
+    color:#A6A08B;
+    margin-bottom:8px;
+  }
+  .field input{
+    width:100%;
+    border:none;
+    border-bottom:1.5px solid var(--paper-line);
+    background:transparent;
+    padding:8px 2px 10px;
+    font-family:'Inter',sans-serif;
+    font-size:16px;
+    color:var(--ink);
+    outline:none;
+    transition:border-color .25s;
+  }
+  .field input:focus{border-color:var(--gold);}
+  .field .err{
+    font-size:11px;
+    color:var(--rose);
+    margin-top:6px;
+    min-height:14px;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+  @media(max-width:520px){ .row2{grid-template-columns:1fr;} }
+
+  .actions{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:8px;
+  }
+  .link-btn{
+    background:none;border:none;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.06em;
+    color:#A6A08B;
+    cursor:pointer;
+    padding:6px 0;
+  }
+  .link-btn:hover{color:var(--ink);}
+
+  .btn-submit{
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    padding:14px 30px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:0.02em;
+    border-radius:2px;
+    cursor:pointer;
+    transition:background .25s, transform .15s;
+  }
+  .btn-submit:hover{background:var(--gold-deep); transform:translateY(-1px);}
+  .btn-submit:active{transform:translateY(0);}
+
+  /* Result: admission ticket */
+  .ticket-wrap{display:flex; justify-content:center;}
+  .ticket{
+    width:100%;
+    max-width:440px;
+    background:var(--card);
+    border:1px solid var(--paper-line);
+    position:relative;
+    box-shadow:var(--shadow);
+    padding:0;
+    overflow:hidden;
+  }
+  .ticket-top{
+    padding:26px 28px 20px;
+    border-bottom:1px dashed var(--paper-line);
+    position:relative;
+  }
+  .ticket-top .eyebrow-mini{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.14em;
+    color:#A6A08B;
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .ticket-top h3{
+    font-family:'Fraunces',serif;
+    font-size:24px;
+    font-weight:600;
+    color:var(--ink);
+    margin:0;
+  }
+  .stamp{
+    position:absolute;
+    top:22px; right:24px;
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.08em;
+    padding:8px 12px;
+    border:2px solid currentColor;
+    border-radius:3px;
+    transform:rotate(6deg);
+    text-transform:uppercase;
+    opacity:0;
+    animation:stamp-in .45s .35s cubic-bezier(.3,1.6,.5,1) forwards;
+  }
+  .stamp.ok{color:var(--gold-deep);}
+  .stamp.no{color:var(--rose);}
+  @keyframes stamp-in{
+    0%{opacity:0; transform:rotate(6deg) scale(1.8);}
+    70%{opacity:1;}
+    100%{opacity:1; transform:rotate(6deg) scale(1);}
+  }
+
+  .ticket-body{padding:22px 28px 8px;}
+  .detail-row{
+    display:flex;
+    justify-content:space-between;
+    padding:11px 0;
+    border-bottom:1px solid var(--paper-line);
+    font-size:14px;
+  }
+  .detail-row:last-child{border-bottom:none;}
+  .detail-row .k{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:#A6A08B;
+  }
+  .detail-row .v{color:var(--ink); font-weight:500; text-align:right;}
+
+  .ticket-foot{
+    padding:20px 28px 26px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .verdict{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.04em;
+    color:#8A8470;
+    max-width:26ch;
+    line-height:1.5;
+  }
+  .again-btn{
+    background:transparent;
+    border:1px solid var(--ink);
+    color:var(--ink);
+    padding:10px 18px;
+    font-size:13px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    cursor:pointer;
+    border-radius:2px;
+    transition:all .2s;
+    white-space:nowrap;
+  }
+  .again-btn:hover{background:var(--ink); color:var(--paper);}
+
+  .perf{
+    position:absolute;
+    left:-8px; right:-8px;
+    height:0;
+    border-top:2px dashed var(--paper);
+    top:calc(84px);
+  }
+  .ticket::before, .ticket::after{
+    content:"";
+    position:absolute;
+    width:16px; height:16px;
+    background:var(--paper);
+    border-radius:50%;
+    top:83px;
+  }
+  .ticket::before{left:-8px;}
+  .ticket::after{right:-8px;}
+
+  footer{
+    text-align:center;
+    margin-top:48px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:#B8B29B;
+    letter-spacing:0.06em;
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet">
+  <div class="eyebrow">Registrar's Office · Est. Session 2026</div>
+  <h1>The Admissions <em>Desk</em></h1>
+  <p class="sub">Choose a track, fill in the ledger, and receive your admission ticket on the spot.</p>
+
+  <div class="rail">
+    <div class="node active" data-step="1"><span class="dot"></span>Track</div>
+    <div class="bar"></div>
+    <div class="node" data-step="2"><span class="dot"></span>Details</div>
+    <div class="bar"></div>
+    <div class="node" data-step="3"><span class="dot"></span>Result</div>
+  </div>
+
+  <!-- STEP 1: choose track -->
+  <div class="panel show" id="panel-1">
+    <div class="tracks">
+      <button class="track" onclick="selectTrack(10)">
+        <span class="num">TRACK / 10</span>
+        <h3>Class 10<br>Admission</h3>
+        <p>Open enrollment. Every completed application is accepted.</p>
+      </button>
+      <button class="track" onclick="selectTrack(12)">
+        <span class="num">TRACK / 12</span>
+        <h3>Class 12<br>Admission</h3>
+        <p>Requires a minimum age of 16 at time of application.</p>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 2: form -->
+  <div class="panel" id="panel-2">
+    <div class="form-card">
+      <div class="track-tag" id="track-tag">TRACK / —</div>
+      <h2 id="form-title">Applicant Ledger</h2>
+
+      <div class="field">
+        <label for="f-name">Full name</label>
+        <input id="f-name" type="text" placeholder="e.g. Aanya Verma" autocomplete="off">
+        <div class="err" id="err-name"></div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="f-age">Age</label>
+          <input id="f-age" type="number" placeholder="e.g. 16" autocomplete="off">
+          <div class="err" id="err-age"></div>
+        </div>
+        <div class="field">
+          <label for="f-phone">Phone</label>
+          <input id="f-phone" type="tel" placeholder="e.g. 9876543210" autocomplete="off">
+          <div class="err" id="err-phone"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f-email">Email</label>
+        <input id="f-email" type="email" placeholder="e.g. aanya@example.com" autocomplete="off">
+        <div class="err" id="err-email"></div>
+      </div>
+
+      <div class="actions">
+        <button class="link-btn" onclick="goStep(1)">&larr; change track</button>
+        <button class="btn-submit" onclick="submitForm()">Submit Application</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: result ticket -->
+  <div class="panel" id="panel-3">
+    <div class="ticket-wrap">
+      <div class="ticket">
+        <div class="ticket-top">
+          <div class="eyebrow-mini" id="ticket-eyebrow">TRACK / — · TICKET NO. —</div>
+          <h3 id="ticket-name">—</h3>
+          <div class="stamp" id="stamp">—</div>
+        </div>
+        <div class="ticket-body">
+          <div class="detail-row"><span class="k">Age</span><span class="v" id="d-age">—</span></div>
+          <div class="detail-row"><span class="k">Phone</span><span class="v" id="d-phone">—</span></div>
+          <div class="detail-row"><span class="k">Email</span><span class="v" id="d-email">—</span></div>
+        </div>
+        <div class="ticket-foot">
+          <div class="verdict" id="verdict-text">—</div>
+          <button class="again-btn" onclick="resetAll()">New application</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Ledger entries are not stored — this desk keeps no record between visits.</footer>
+</div>
+
+<script>
+  let currentTrack = null;
+  let ticketCounter = 241; // cosmetic running ticket number
+
+  function goStep(n){
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('show'));
+    document.getElementById('panel-'+n).classList.add('show');
+    document.querySelectorAll('.rail .node').forEach(node=>{
+      node.classList.toggle('active', parseInt(node.dataset.step) <= n);
+    });
+  }
+
+  function selectTrack(track){
+    currentTrack = track;
+    document.getElementById('track-tag').textContent = 'TRACK / ' + track;
+    document.getElementById('form-title').textContent =
+      track === 10 ? 'Class 10 — Applicant Ledger' : 'Class 12 — Applicant Ledger';
+    goStep(2);
+  }
+
+  function clearErrors(){
+    ['name','age','phone','email'].forEach(id=>{
+      document.getElementById('err-'+id).textContent = '';
+    });
+  }
+
+  function submitForm(){
+    clearErrors();
+    const name = document.getElementById('f-name').value.trim();
+    const ageRaw = document.getElementById('f-age').value.trim();
+    const phone = document.getElementById('f-phone').value.trim();
+    const email = document.getElementById('f-email').value.trim();
+
+    let hasError = false;
+    if(!name){ document.getElementById('err-name').textContent = 'Required'; hasError = true; }
+    if(!ageRaw || isNaN(ageRaw)){ document.getElementById('err-age').textContent = 'Enter a valid age'; hasError = true; }
+    if(!phone){ document.getElementById('err-phone').textContent = 'Required'; hasError = true; }
+    if(!email){ document.getElementById('err-email').textContent = 'Required'; hasError = true; }
+    if(hasError) return;
+
+    const age = parseInt(ageRaw, 10);
+
+    // --- mirrors the Python admission logic exactly ---
+    let admitted;
+    if(currentTrack === 10){
+      admitted = true; // class10admission always prints "admission successful"
+    } else {
+      admitted = age >= 16; // class12admission checks age
+    }
+
+    renderTicket({name, age, phone, email, admitted});
+    goStep(3);
+  }
+
+  function renderTicket({name, age, phone, email, admitted}){
+    ticketCounter++;
+    document.getElementById('ticket-eyebrow').textContent =
+      'TRACK / ' + currentTrack + ' · TICKET NO. ' + ticketCounter;
+    document.getElementById('ticket-name').textContent = name;
+    document.getElementById('d-age').textContent = age;
+    document.getElementById('d-phone').textContent = phone;
+    document.getElementById('d-email').textContent = email;
+
+    const stamp = document.getElementById('stamp');
+    stamp.style.animation = 'none';
+    void stamp.offsetWidth; // restart animation
+    stamp.style.animation = null;
+
+    if(admitted){
+      stamp.textContent = 'Admitted';
+      stamp.className = 'stamp ok';
+      document.getElementById('verdict-text').textContent =
+        currentTrack === 10
+          ? 'Class 10 enrollment is open to all applicants. Welcome aboard.'
+          : 'Age requirement met (16+). Welcome to Class 12.';
+    } else {
+      stamp.textContent = 'Not eligible';
+      stamp.className = 'stamp no';
+      document.getElementById('verdict-text').textContent =
+        'Class 12 requires a minimum age of 16. This applicant is ' + age + '.';
+    }
+  }
+
+  function resetAll(){
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-age').value = '';
+    document.getElementById('f-phone').value = '';
+    document.getElementById('f-email').value = '';
+    clearErrors();
+    currentTrack = null;
+    goStep(1);
+  }
+</script>
+</body>
+</html>
